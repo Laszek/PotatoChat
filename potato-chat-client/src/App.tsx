@@ -4,15 +4,12 @@ import './App.css';
 import Home from './pages/Home'
 import Chat from './pages/Chat'
 
-
-
-
 function App() {
   const [isChatOpened, setIsChatOpened] = useState<boolean>(false);
 
   return (
     <div className="App">
-      {isChatOpened ? <Chat /> : <Home />}
+      {isChatOpened ? <Chat /> : <Home onJoinToChat={()=> setIsChatOpened(true)} />}
     </div>
   );
 }
