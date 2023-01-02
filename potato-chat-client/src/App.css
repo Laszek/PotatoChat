@@ -1,5 +1,15 @@
+body, root, *, *:after, *:before {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* FONT SETTINGS */
+* {
+  font-family: Lato;
+}
+
 .App {
-  text-align: center;
 }
 
 .App-logo {
