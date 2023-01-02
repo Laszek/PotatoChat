@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/zadanie-rekrutacyjne.iml" filepath="$PROJECT_DIR$/.idea/zadanie-rekrutacyjne.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/react+nest_potatochat.iml" filepath="$PROJECT_DIR$/.idea/react+nest_potatochat.iml" />
     </modules>
   </component>
 </project>
