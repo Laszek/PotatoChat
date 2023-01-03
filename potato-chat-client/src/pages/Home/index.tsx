@@ -1,11 +1,11 @@
 import './style.css';
 
-export interface Props {
+interface Props {
     /* function to change state isChatOpened at App component */
     onJoinToChat: () => void;
 }
 
-const Home: React.FC<Props> = ({onJoinToChat}) => {
+const Home: React.FC<Props> = ({ onJoinToChat }) => {
     return (
         <div className="home">
             <img className="home__logo" src="./logo.png" alt="logo" />

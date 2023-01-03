@@ -1,18 +1,20 @@
-import { ChangeEvent, useEffect, useState } from "react";
+import { ChangeEvent, useEffect, useRef, useState } from "react";
 import './style.css';
-import { SERVER_URL, WS_URL } from '../../config'
 import axios from 'axios'
 import { io } from 'socket.io-client'
-
+// Import URLs to connections
+import {
+    SERVER_URL,
+    WS_URL
+} from '../../config'
+// Import interfaces
+import {
+    ServerMessage,
+    ChatMessage
+} from '../../data/interfaces'
+// Import components
 import Loading from './components/Loading'
-
-// Injecting chat message interface
-interface ChatMessage {
-    id: number,
-    author: string,
-    date: string,
-    text: string
-}
+import Message from './components/Message'
 
 // setting up axios to http connection
 const httpClient = axios.create({
@@ -23,17 +25,16 @@ const httpClient = axios.create({
 const socket = io(WS_URL);
 
 const Chat = () => {
-    const [response, setResponse] = useState<ChatMessage[]>([]);
-    const [isConnected, setConnected] = useState(socket.connected);
     const [questionText, setQuestionText] = useState<string>("");
-    const [isLoading, setIsLoading] = useState<boolean>(false);
 
-    // Initial fetching of chat history
-    useEffect(() => {
-        httpClient.get('/answers').then(response => {
-            console.log(response.data)
-        })
-    }, [])
+    // connection status states
+    const [isConnected, setConnected] = useState(socket.connected);
+    const [response, setResponse] = useState<ChatMessage[]>([]);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [errorMessage, setErrorMessage] = useState<string>("");
+
+    // refs
+    const chatLogRef = useRef<HTMLDivElement>(null);
 
     // socket connection
     useEffect(() => {
@@ -42,7 +43,14 @@ const Chat = () => {
             setConnected(true);
         });
 
-
+        // Action when Server send a new Message
+        socket.on('message', (...data) =>{
+            data.map((item) => {
+                if((item as ServerMessage).clientId){
+                    getChatMessage(item.message.id)
+                }
+            })
+        })
 
         socket.on('disconnect', () => {
             console.log('disconnected')
@@ -54,43 +62,70 @@ const Chat = () => {
             socket.off('disconnect');
             socket.disconnect();
         };
-    }, [socket])
+    }, [])
 
+    // Initial fetching of chat history
     useEffect(() => {
         getChatHistory();
     }, [])
 
+
+    // Fetch chatlog history
     const getChatHistory = () => {
         setIsLoading(true);
         httpClient.get('/messages')
             .then(response => {
-                setResponse(response.data);
-                console.log(response.data);
+                setResponse(response?.data);
                 setIsLoading(false);
+                chatLogRef.current?.scrollTo({ top: chatLogRef.current.scrollHeight });
             })
-    }
+    };
+
+    const getChatMessage = (msgId: string) => {
+        setIsLoading(true);
+        httpClient.get(`/messages/${msgId}`)
+            .then(response => {
+                setResponse(prevState => [...prevState, {
+                    id: response?.data?.id,
+                    author: response?.data?.author,
+                    date: response?.data?.date,
+                    text: response?.data?.text
+                }])
+                setIsLoading(false);
+                chatLogRef.current?.scrollTo({ top: chatLogRef.current.scrollHeight, behavior: 'smooth' });
+            })
+    };
 
     const handleInputChange = (e: ChangeEvent) => {
         const target = e.target as HTMLInputElement;
         setQuestionText(target.value)
-    }
+    };
 
-    const sendMessage = () => {
-        if (response !== null)
-            setResponse(prevState => [...prevState, {
-                id: 1,
-                author: "Anonymous",
-                date: new Date().toISOString(),
-                text: questionText
-            }])
-        else
-            setResponse([{ id: 1, author: "Anonymous", date: new Date().toISOString(), text: questionText }])
+    const prepareQuestion = (qText: string) => {
+        let newText = qText.split(' ')
+            .filter(e => e.trim().length)
+            .join(' ')
+            .toLowerCase()
 
-        httpClient.post(SERVER_URL + "/messages", { "content": questionText })
+        if(newText[newText.length-1] != "?")
+            newText = newText + "?";
+
+        return newText;
+    };
+
+    const onSendMessage = () => {
+        setIsLoading(true);
+        httpClient.post(SERVER_URL + "/messages", { "content": prepareQuestion(questionText) })
             .then((response) => {
                 console.log(response)
-                getChatHistory();
+                setIsLoading(false)
+                setQuestionText("");
             })
+            .catch((error) => {
+                console.warn(error)
+            })
+
+
     }
 
     return (
@@ -99,24 +134,10 @@ const Chat = () => {
                 <div className="sidebar__logo"><img src="./logo.png" alt="logo"/></div>
             </div>
             <div className="chat">
-                <div className="chatlog">
+                <div className="chatlog" ref={chatLogRef}>
                     { response !== null && response.length > 0
-                        ? response.map((message) =>
-                            <div
-                                key={ message?.id }
-                                className={ message?.author == "PotatoChat" ? "chat__message--answer" : "chat__message" }
-                            >
-                                <div>
-                                    <p className="author">{ message?.author }</p>
-                                    <p>{ message?.text }</p>
-                                </div>
-                                <p className="date">
-                                    { new Date(message?.date).toLocaleDateString() } { new Date(message?.date).toLocaleTimeString([], {
-                                    hour: "2-digit",
-                                    minute: "2-digit"
-                                }) }
-                                </p>
-                            </div>
+                        ? response.map((msg) =>
+                            <Message key={msg.id} message={msg} />
                         )
                         : <p className="chat__info">Write first question...</p> }
                     { isLoading && <Loading/> }
@@ -128,7 +149,7 @@ const Chat = () => {
                         onChange={ (e) => handleInputChange(e) }
                         value={ questionText }
                     />
-                    <button onClick={ sendMessage }>Wyślij</button>
+                    <button onClick={ onSendMessage }>Wyślij</button>
                 </div>
             </div>
         </div>

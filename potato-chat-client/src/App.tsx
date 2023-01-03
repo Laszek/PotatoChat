@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import './App.css';
 
+// import pages components
 import Home from './pages/Home'
 import Chat from './pages/Chat'
 

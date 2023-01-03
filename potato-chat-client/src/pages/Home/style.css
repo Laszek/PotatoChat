@@ -1,13 +1,25 @@
 .home {
+    position: relative;
     height: 100vh;
-    background: #fcb827;
+    background: linear-gradient(-145deg, rgba(252, 209, 39, 0.44), #eaca2c);
     display: flex;
     justify-content: center;
     align-items: center;
 }
+.home:before {
+    content: "";
+    position: absolute;
+    top:0;
+    right:0;
+    bottom:0;
+    left:0;
+    z-index: -1;
+    background-image: url("background.jpg");
+}
 
 .home__content {
-    padding: 4em;
+    padding: 3em;
+    margin: 1em;
     background: #ffffff;
     border-radius: 15px;
 }

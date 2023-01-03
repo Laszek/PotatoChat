@@ -1,0 +1,44 @@
+.message__container, .message__container--answer {
+    margin-bottom: 1em;
+}
+.chat__message, .chat__message--answer {
+    background-color: white;
+    color: #1f1f1f;
+    border: 2px solid rgba(0, 0, 0, 0.27);
+    border-radius: 10px;
+    font-size: .7em;
+    padding: .5em 1em;
+}
+
+.chat__message--answer {
+    background-color: #973d97;
+    color: white;
+}
+
+.message__container {
+    margin-left: 40%;
+}
+.message__container--answer {
+    margin-right: 40%;
+}
+
+.chat__message .author, .chat__message--answer .author {
+    font-size: .7em;
+    font-style: italic;
+    margin-bottom: .2em;
+}
+
+.message__container .date, .message__container--answer .date {
+    font-size: .5em;
+    font-style: italic;
+    margin-top: .2em;
+}
+
+.message__container .date{
+    margin-left: .5em;
+    text-align: left;
+}
+.message__container--answer .date{
+    margin-right: .5em;
+    text-align: right;
+}
