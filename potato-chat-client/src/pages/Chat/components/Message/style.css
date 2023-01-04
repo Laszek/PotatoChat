@@ -1,5 +1,6 @@
 .message__container, .message__container--answer {
     margin-bottom: 1em;
+    max-width: 60%;
 }
 .chat__message, .chat__message--answer {
     background-color: white;
@@ -8,18 +9,19 @@
     border-radius: 10px;
     font-size: .7em;
     padding: .5em 1em;
+    width: auto;
 }
 
 .chat__message--answer {
-    background-color: #973d97;
+    background-color: #f82d2d;
     color: white;
 }
 
 .message__container {
-    margin-left: 40%;
+    align-self: flex-end;
 }
 .message__container--answer {
-    margin-right: 40%;
+    align-self: flex-start;
 }
 
 .chat__message .author, .chat__message--answer .author {

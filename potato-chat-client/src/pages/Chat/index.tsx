@@ -1,4 +1,4 @@
-import { ChangeEvent, useEffect, useRef, useState } from "react";
+import { ChangeEvent, useEffect, useRef, useState, KeyboardEvent } from "react";
 import './style.css';
 import axios from 'axios'
 import { io } from 'socket.io-client'
@@ -6,7 +6,7 @@ import { io } from 'socket.io-client'
 import {
     SERVER_URL,
     WS_URL
-} from '../../config'
+} from '../../data/config'
 // Import interfaces
 import {
     ServerMessage,
@@ -15,6 +15,11 @@ import {
 // Import components
 import Loading from './components/Loading'
 import Message from './components/Message'
+import Sidebar from "./components/Sidebar";
+import ChatInput from "./components/ChatInput";
+import {
+    KeyboardEventHandler
+} from "../../../../../../../../Programy/JetBrains/WebStorm 2022.1.1/plugins/JavaScriptLanguage/jsLanguageServicesImpl/external/react";
 
 // setting up axios to http connection
 const httpClient = axios.create({
@@ -38,6 +43,7 @@ const Chat = () => {
 
     // socket connection
     useEffect(() => {
+
         socket.on('connect', () => {
             console.log('connected: ' + socket.id)
             setConnected(true);
@@ -46,6 +52,8 @@ const Chat = () => {
         // Action when Server send a new Message
         socket.on('message', (...data) =>{
             data.map((item) => {
+                //selecting response data that fits to ServerMessage type,
+                // then getting message from endpoint
                 if((item as ServerMessage).clientId){
                     getChatMessage(item.message.id)
                 }
@@ -59,14 +67,16 @@ const Chat = () => {
 
         return () => {
             socket.off('connect');
+            socket.off('message');
             socket.off('disconnect');
             socket.disconnect();
         };
     }, [])
 
-    // Initial fetching of chat history
+    // Initial fetching of chat history and events
     useEffect(() => {
         getChatHistory();
+
     }, [])
 
 
@@ -76,11 +86,17 @@ const Chat = () => {
         httpClient.get('/messages')
             .then(response => {
                 setResponse(response?.data);
-                setIsLoading(false);
                 chatLogRef.current?.scrollTo({ top: chatLogRef.current.scrollHeight });
+            })
+            .catch((error) => {
+                console.error(error)
+            })
+            .finally(() => {
+                setIsLoading(false);
             })
     };
 
+    // getting message with specified id
     const getChatMessage = (msgId: string) => {
         setIsLoading(true);
         httpClient.get(`/messages/${msgId}`)
@@ -91,15 +107,27 @@ const Chat = () => {
                     date: response?.data?.date,
                     text: response?.data?.text
                 }])
-                setIsLoading(false);
                 chatLogRef.current?.scrollTo({ top: chatLogRef.current.scrollHeight, behavior: 'smooth' });
+            })
+            .catch((error) => {
+                console.error(error)
+            })
+            .finally(() => {
+                setIsLoading(false);
             })
     };
 
+    // Saving changes from input in state
     const handleInputChange = (e: ChangeEvent) => {
         const target = e.target as HTMLInputElement;
         setQuestionText(target.value)
     };
+
+    // Sending message on Enter clicked and when Input is focused
+    const handleEnterKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+        if(e.key == "Enter")
+            handleSendMessage();
+    }
 
     const prepareQuestion = (qText: string) => {
         let newText = qText.split(' ')
@@ -113,44 +141,42 @@ const Chat = () => {
         return newText;
     };
 
-    const onSendMessage = () => {
+    const handleSendMessage = () => {
         setIsLoading(true);
         httpClient.post(SERVER_URL + "/messages", { "content": prepareQuestion(questionText) })
             .then((response) => {
-                console.log(response)
-                setIsLoading(false)
                 setQuestionText("");
             })
             .catch((error) => {
-                console.warn(error)
+                console.error(error)
             })
-
-
+            .finally(() => {
+                setIsLoading(false)
+            })
     }
 
     return (
         <div className="chat__container">
-            <div className="sidebar">
-                <div className="sidebar__logo"><img src="./logo.png" alt="logo"/></div>
-            </div>
+            <Sidebar />
             <div className="chat">
-                <div className="chatlog" ref={chatLogRef}>
+                <div
+                    className="chatlog"
+                    ref={chatLogRef}
+                >
                     { response !== null && response.length > 0
                         ? response.map((msg) =>
                             <Message key={msg.id} message={msg} />
                         )
-                        : <p className="chat__info">Write first question...</p> }
+                        : <p className="chat__info">Write first question...</p>
+                    }
                     { isLoading && <Loading/> }
                 </div>
-                <div className="chat__input">
-                    <input
-                        type="text"
-                        placeholder="Ask something..."
-                        onChange={ (e) => handleInputChange(e) }
-                        value={ questionText }
-                    />
-                    <button onClick={ onSendMessage }>Wyślij</button>
-                </div>
+                <ChatInput
+                    questionText={questionText}
+                    onInputChange={handleInputChange}
+                    onSendMessage={handleSendMessage}
+                    onEnterKeyDown={handleEnterKeyDown}
+                />
             </div>
         </div>
     )

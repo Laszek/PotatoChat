@@ -10,9 +10,9 @@ const Home: React.FC<Props> = ({ onJoinToChat }) => {
         <div className="home">
             <img className="home__logo" src="./logo.png" alt="logo" />
             <div className="home__content">
-                <h1 className="header">witaj w <p className="header--accent">POTATO CHAT!</p></h1>
-                <p className="text">Kliknij w przycisk poniżej i dostań odpowiedź na swoje pytania!</p>
-                <button className="cta-btn" onClick={onJoinToChat}>Otwórz pokój chatu!</button>
+                <h1 className="header">Welcome to <p className="header--accent">POTATO CHAT!</p></h1>
+                <p className="text">Continue with a button below and get answer to any question!</p>
+                <button className="cta-btn" onClick={onJoinToChat}>Join to Chat Room!</button>
             </div>
         </div>
     )

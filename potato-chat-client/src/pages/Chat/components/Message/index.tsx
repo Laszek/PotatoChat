@@ -16,10 +16,14 @@ const Message: React.FC<Props> = ({ message }) => {
                 <p>{ message?.text }</p>
             </div>
             <p className="date">
-                { new Date(message?.date).toLocaleDateString() } { new Date(message?.date).toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit"
-            }) }
+                {
+                    new Date(message?.date).toLocaleDateString()
+                } {
+                    new Date(message?.date).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit"
+                    })
+                }
             </p>
         </div>
     )
